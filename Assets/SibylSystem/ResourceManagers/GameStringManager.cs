@@ -122,5 +122,27 @@ public static class GameStringManager
         }
         return a;
     }
+	 internal static string get(UInt64 description)
+    {
+        string a = "";
+        if (description < 10000)
+        {
+            a = get("system", (int)description);
+        }
+        else
+        {
+            int code = Convert.ToInt32(description >> 4);
+            int index = Convert.ToInt32(description & 0xf);
+            try
+            {
+                a = YGOSharp.CardsManager.Get(code).Str[index];
+            }
+            catch (Exception e)
+            {
+                Program.DEBUGLOG(e);
+            }
+        }
+        return a;
+    }
 }
 

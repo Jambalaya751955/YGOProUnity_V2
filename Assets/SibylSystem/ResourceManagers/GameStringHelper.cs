@@ -119,6 +119,23 @@ public class GameStringHelper
 
     public static string getName(YGOSharp.Card card)
     {
+		string limitot = "";
+		switch(card.Ot)
+		{
+		case 1:
+			limitot = "OCG";
+			break;
+		case 2:
+			limitot = "TCG";
+			break;
+		case 3:
+			limitot = "OCG/TCG";
+			break;
+		case 4:
+			limitot = "Anime";
+			break;
+		
+		}
         string re = "";
         try
         {

@@ -1118,8 +1118,8 @@ public class Ocgcore : ServantWithCardDescription
                 int count = r.ReadByte();
                 int spcount = r.ReadByte();
                 int forced = r.ReadByte();
-                int hint0 = r.ReadInt32();
-                int hint1 = r.ReadInt32();
+               /*int hint0=*/ r.ReadInt32();
+               /* int hint1 =*/ r.ReadInt32();
                 bool ignore = false;
                 if (forced == 0)    
                 {
@@ -1789,15 +1789,12 @@ public class Ocgcore : ServantWithCardDescription
                 }
                 break;
             case GameMessage.HandResult:
-                data = r.ReadByte();
-                int data1 = data & 0x3;
-                int data2 = (data >> 2) & 0x3;
-                string res1 = (data1 == 1 ? "剪刀" : (data1 == 2 ? "布" : "石头"));
-                string res2 = (data2 == 1 ? "剪刀" : (data2 == 2 ? "布" : "石头"));
-                if (isFirst)
-                    printDuelLog("猜拳结果：你好像出了" + res2 + data2.ToString() + "，对方好像出了" + res1 + data1.ToString());
-                else
-                    printDuelLog("猜拳结果：你好像出了" + data1.ToString() + res1 + "，对方好像出了" + res2 + data2.ToString());
+                int Result = r.ReadByte();
+                Program.I().new_ui_handShower.GetComponent<handShower>().me = (Result & 0x3) - 1;
+                Program.I().new_ui_handShower.GetComponent<handShower>().op = ((Result >> 2) & 0x3) - 1;
+                GameObject handres = create(Program.I().new_ui_handShower, Vector3.zero, Vector3.zero, false, Program.ui_main_2d);
+                destroy(handres, 10f);
+                Sleep(280);
                 break;
             case GameMessage.Attack:
                 game_card = GCS_cardGet(r.ReadGPS(), false);
@@ -1995,7 +1992,7 @@ public class Ocgcore : ServantWithCardDescription
             case GameMessage.PlayerHint:
                 controller = localPlayer(r.ReadByte());
                 int ptype = r.ReadByte();
-                int pvalue = r.ReadInt32();
+                UInt64 pvalue = (lua64) ? r.ReadUInt64(): r.ReadUInt32();
                 string valstring = GameStringManager.get(pvalue);
                 if (ptype == 6)
                 {
@@ -2064,29 +2061,29 @@ public class Ocgcore : ServantWithCardDescription
            case GameMessage.Hint:
                 Es_selectMSGHintType = r.ReadChar();
                 Es_selectMSGHintPlayer = localPlayer(r.ReadChar());
-                Es_selectMSGHintData = r.ReadInt32();
+                Es_selectMSGHintData = (lua64) ? r.ReadUInt64() : r.ReadUInt32();
                 type = Es_selectMSGHintType;
                 player = Es_selectMSGHintPlayer;
-                data = Es_selectMSGHintData;
+                UInt64 data2 = Es_selectMSGHintData;
                 if (type == 1)
                 {
-                    ES_hint = GameStringManager.get(data);
+                    ES_hint = GameStringManager.get(data2);
                 }
                 if (type == 2)
                 {
-                    printDuelLog(GameStringManager.get(data));
+                    printDuelLog(GameStringManager.get(data2));
                 }
                 if (type == 3)
                 {
-                    ES_selectHint = GameStringManager.get(data);
+                    ES_selectHint = GameStringManager.get(data2);
                 }
                 if (type == 4)
                 {
-                    printDuelLog(InterString.Get("效果选择：[?]", GameStringManager.get(data)));
+                    printDuelLog(InterString.Get("效果选择：[?]", GameStringManager.get(data2)));
                 }
                 if (type == 5)
                 {
-                    printDuelLog(GameStringManager.get(data));
+                    printDuelLog(GameStringManager.get(data2));
                 }
                 if (type == 6)
                 {
@@ -3011,7 +3008,8 @@ public class Ocgcore : ServantWithCardDescription
                 {
                     code = r.ReadInt32();
                     gps = r.ReadShortGPS();
-                    desc = GameStringManager.get(r.ReadInt32());
+                    UInt64 tempdesc2 = (lua64) ? r.ReadUInt64() : r.ReadUInt32();
+					desc = GameStringManager.get(tempdesc2);
                     card = GCS_cardGet(gps, false);
                     if (card != null)
                     {
@@ -3158,7 +3156,7 @@ public class Ocgcore : ServantWithCardDescription
                 {
                     code = r.ReadInt32();
                     gps = r.ReadShortGPS();
-                    int descP = r.ReadInt32();
+                    UInt64 descP = (lua64) ? r.ReadUInt64() : r.ReadUInt32();
                     desc = GameStringManager.get(descP);
                     card = GCS_cardGet(gps, false);
                     if (card != null)
@@ -3232,10 +3230,10 @@ public class Ocgcore : ServantWithCardDescription
                 code = r.ReadInt32();
                 gps = r.ReadShortGPS();
                 r.ReadByte();
-                int cr = 95;
+                UInt64 cr = 95;
                 if (Config.ClientVersion >= 0x233c)
                 {
-                    int cp = r.ReadInt32();
+                    UInt64 cp = (lua64) ? r.ReadUInt64() : r.ReadUInt32();
                     if (cp > 0)
                         cr = cp;
                 }
@@ -3281,7 +3279,8 @@ public class Ocgcore : ServantWithCardDescription
                     values = new List<messageSystemValue>();
                     for (int i = 0; i < count; i++)
                     {
-                        desc = GameStringManager.get(r.ReadInt32());
+                        UInt64 temp = (lua64) ? r.ReadUInt64() : r.ReadUInt32();
+						desc = GameStringManager.get(temp);
                         values.Add(new messageSystemValue { hint = desc, value = i.ToString() });
                     }
                     RMSshow_singleChoice("return", values);
@@ -3469,7 +3468,8 @@ public class Ocgcore : ServantWithCardDescription
                     }
                     code = r.ReadInt32() % 1000000000;
                     gps = r.ReadGPS();
-                    desc = GameStringManager.get(r.ReadInt32());
+                    UInt64 tempdesc = (lua64) ? r.ReadUInt64() : r.ReadUInt32();
+					desc = GameStringManager.get(tempdesc);
                     card = GCS_cardGet(gps, false);
                     if (card != null)
                     {
@@ -4057,11 +4057,11 @@ public class Ocgcore : ServantWithCardDescription
                     {
                         if (Es_selectMSGHintPlayer == 0)
                         {
-                            gameField.setHint(InterString.Get("请为我方的「[?]」选择位置。", YGOSharp.CardsManager.Get(Es_selectMSGHintData).Name));
+                            gameField.setHint(InterString.Get("请为我方的「[?]」选择位置。", YGOSharp.CardsManager.Get((int)Es_selectMSGHintData).Name));
                         }
                         else
                         {
-                            gameField.setHint(InterString.Get("请为对方的「[?]」选择位置。", YGOSharp.CardsManager.Get(Es_selectMSGHintData).Name));
+                            gameField.setHint(InterString.Get("请为对方的「[?]」选择位置。", YGOSharp.CardsManager.Get((int)Es_selectMSGHintData).Name));
                         }
                     }
                 }
@@ -5248,7 +5248,7 @@ public class Ocgcore : ServantWithCardDescription
                 values = new List<messageSystemValue>();
                 for (int i = 0; i < count; i++)
                 {
-                    values.Add(new messageSystemValue { hint = r.ReadUInt32().ToString(), value = i.ToString() });
+                    values.Add(new messageSystemValue { hint = (lua64) ? (r.ReadUInt64().ToString()): (r.ReadUInt32().ToString()), value = i.ToString() });
                 }
                 RMSshow_multipleChoice("return", 1, values);
                 break;
@@ -5464,7 +5464,7 @@ public class Ocgcore : ServantWithCardDescription
     string ES_selectHint = "";
     int Es_selectMSGHintType = 0;
     int Es_selectMSGHintPlayer = 0;
-    int Es_selectMSGHintData = 0;
+    UInt64 Es_selectMSGHintData = 0;
 
     List<gameCard> MHS_getBundle(int controller, int location)
     {
@@ -9010,6 +9010,7 @@ public class Ocgcore : ServantWithCardDescription
     long code_for_show = 0;
 
     public bool InAI = false;
+	public bool lua64;
 
     void animation_show_card_code_handler()
     {
